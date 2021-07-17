@@ -1,0 +1,409 @@
+---
+title: "Exploring the BRFSS data"
+author: "Maytsai"
+date: "6/28/2021"
+output: html_document
+---
+
+
+## Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+
+
+```
+
+
+
+## Load Data
+
+```{r}
+load("~/brfss2013.Rdata")
+```
+
+
+
+## Columns
+
+```{r}
+names(brfss2013)
+```
+
+## Part 1
+
+1 ) **Describe how the observations in the sample are collected?**
+The Behavioral Risk Factor Surveillance System (BRFSS) is the nation’s premier system of health-related telephone surveys that collect state data about local U.S. residents. 
+
+The survey regarding their health-related risk behaviors, chronic health conditions, and use of preventive services. 
+
+Factors accessed by the organization include
+- Tobacco use
+- HIV/AIDS knowledge and prevention
+- Exercise
+- Health status ( Immunization, days, related quality of life, Health care acces, cholesterol awareness, chronic health conditions)
+- Mental Health 
+- Inadequate sleep
+- Hypertension awareness)
+- Individual Food Consumption(alcohol consumption,fruits and vegetables consumption ) 
+- arthritis burden
+
+
+
+
+2 ) **How the implications of this data collection method on the scope of inference (generalizability / causality).**
+BRFSS collects data in all 50 states as well as the District of Columbia and three U.S. territories. BRFSS completes more than 400,000 adult interviews each year, making it the largest continuously conducted health survey system in the world.
+
+With the large data set acquired by extent collective area, we can assume that the survey was obtained by random sampling. The survey was scope by the method of gerneralizability.
+
+Since it is not a random assignment, only correlation can imply to the result but not causation.
+
+
+## Part 2
+Controlling my diet for the past few years, I am especially interest in how Binge drinking correlated with demographic and the mental/physical health of respondents.
+
+**Research Question 1** 
+How does Binge Drinking vary between gender and states? 
+
+**Research Question 2** 
+How does Binge Drinking correlate with poor mental health status and poor physical health status?
+
+**Research Question 3** 
+How does Education Level, Employment Status, and Income Level relate to Binge Drinking?
+
+
+
+
+## Part 3 Exploratory Data Analysis
+
+The variable of 'drnk3ge5' will be use to access how many times during the past 30 days did the respondent have 5 or more drinks for men or 4 or more drinks for women on an occasion of the respondents? 
+
+
+**Research Question 1**
+
+First, we will have to cleansed the data to exclude any missing values, including 'sex', 'X_state', and 'drnk3ge5'. The cleansed version of the data sets will be named 'brfss2013_new'.
+
+```{r}
+brfss2013_new <- brfss2013 %>%
+  filter(!is.na(brfss2013$sex), !is.na(brfss2013$drnk3ge5), !is.na(brfss2013$X_state),!is.na(brfss2013$menthlth))
+```
+```{r}
+dim(brfss2013_new)
+```
+
+The new data set brfss2013_new contains 228,894 total records.
+
+The following analysis will show the correlation between Binge Drinking times and gender.
+
+
+```{r}
+# correlation between Binge Drinking times and gender
+ggplot(aes(x=drnk3ge5, fill=sex), data = brfss2013_new[]) +
+  geom_histogram(binwidth=1,bins=10, position = position_dodge()) + ggtitle('                                                                                     How many times does did male/female binge drinks in the Past 30 Days') + scale_x_continuous(breaks = seq(0, 76, 1)) + theme_classic()+
+  theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 4.5))+ scale_fill_brewer(palette = 'Pastel1')+
+  xlab("Binge Drinking Times") +
+  ylab("Count") 
+                                                                 
+```
+
+
+The histogram displays how male and female participants responded to how often did they drink in a occasion. From the graph, it appears the vast majority of respondents binge drinking 0 time in a month, that means they don't really over drink in the past 30 days. Also, the graph makes it seem that men experience more binge drinking problem than women. Further, the number of respondents will split by gender, as well as other relevant information such as the median and interquartile range.
+
+
+```{r}
+# Data Summarise
+brfss2013_new %>%
+  group_by(sex) %>%
+  summarise(median= median(drnk3ge5),IQR = IQR(drnk3ge5), min = min(drnk3ge5), max =max(drnk3ge5), 
+  strd_dev = sd(drnk3ge5), count = n()) 
+```
+
+
+  This summary of the data confirms what was expected. The median for both males and females lies at 0, so it can be inferred that most respondents did not experience over drinking day in the past 30 days. 
+
+  Additionally, the IQR, interquartile range, is on the lower side as well for both males and females. The IQR shows where 75% of the data lies. Since men have an IQR of 1, and women have an IQR of 0, it is safe to say that most people have no binge drinking problem as male did not drink 5 or more drinks or 4 or more drinks for women on an occasion in the past one month.
+
+  Lastly, the assumption that men do binge drinking more times than women proves valid as the IQR for men is higher.
+  
+  The above analysis gives the general trends for the reported binge drinking by gender for all states, but the trend per state may differ. To better see the general trend for each state, another analysis  should be built. To do this, a few more steps are required. 
+  
+  First, new data set should be created that split the data by 'gender'. Using new data set, three new data frames will be created. These data frames will only consist of binge drinking reports, the state, and the gender of the respondent. 
+
+Now the new data set will have to be created to present the filter of Male and Female who got their most Drinks on single occasion in the past 30 Days as following:
+
+  * drnk3ge5_all - includes both males and females
+  * drnk3ge5_men - includes only males
+  * drnk3ge5_women - includes only females
+
+```{r}
+#Data Cleansing, filter by gender 
+brfss2013_men <- brfss2013_new %>%
+  filter(brfss2013_new$sex == 'Male')
+
+brfss2013_women <- brfss2013_new %>%
+  filter(brfss2013_new$sex == 'Female') 
+
+```
+
+
+```{r}
+#Create new data frames
+drnk3ge5_all <- data.frame (drnk3ge5=brfss2013_new$drnk3ge5,
+                state = (brfss2013_new$X_state),
+                gender = (brfss2013_new$sex))
+
+drnk3ge5_men <- data.frame (drnk3ge5=brfss2013_men$drnk3ge5,
+                state = (brfss2013_men$X_state),
+                gender = (brfss2013_men$sex))
+
+drnk3ge5_women <- data.frame(drnk3ge5=brfss2013_women$drnk3ge5,
+                  state = (brfss2013_women$X_state),
+                  gender = (brfss2013_women$sex))
+```
+
+
+After the data frames were created, now we can plot the result of which state have the most serious binge drinking problem.
+
+
+```{r}
+#Plot correlation between binge drinking, state and all respondents
+
+state_all <- ggplot(data=drnk3ge5_all, aes(y=state,fill=drnk3ge5)) + geom_bar(stat="count",width = 0.7, position = position_dodge(0.9))+ guides(fill=guide_legend(title="Count"))+ theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size =7))+ labs(title = '              Total Count of number of days of binge drinking for all Respondents in the past 30 days', fill = "Sex", x = "Count",y = "State")+geom_text(stat = 'count', aes(label = (..count..)), vjust = 0.5, hjust=-0.1, color=I('black'), size = 2)
+
+
+ggplot(data=drnk3ge5_all, aes(y=state,fill=drnk3ge5)) + geom_bar(stat="count",width = 0.7, position = position_dodge(0.9))+ guides(fill=guide_legend(title="Count"))+  theme_classic()+ theme(legend.justification = "top", legend.direction = "vertical",text = element_text(size =7))+ labs(title = '              Total Count of number of days of binge drinking for all Respondents in the past 30 days', panel.spacing = unit(10, "lines"))+geom_text(stat = 'count', aes(label = (..count..)), vjust = 0.5, hjust=-0.1, color=I('black'), size = 2)
+
+
+
+``` 
+
+The plot indicates that Florida, Kansas, and Nebraska are the top three state with the total count a both Female and Male binge drinking times per month. For instance, Florida includes a total count of 14539 drinking times in a month,Kansas 10814 times, and Nebraska 8703 times in a month.
+
+
+
+```{r}
+#Plot correlation between binge drinking, state and male respondents
+
+state_men <- ggplot(data=drnk3ge5_men, aes(y=state,fill=drnk3ge5)) + geom_bar(width = 0.8,position = position_dodge(0.9))+ ggtitle('Total Count of number of days of binge drinking for Male Respondents in the past 30 days') + guides(fill=guide_legend(title="Count"))+ theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 8))+geom_text(stat = 'count', aes(label = (..count..)), vjust = 0.5, hjust=-0.1, color=I('black'), size = 2)
+
+ggplot(data=drnk3ge5_men, aes(y=state,fill=drnk3ge5)) + geom_bar(width = 0.8,position = position_dodge(0.9))+ ggtitle('Total Count of number of days of binge drinking for Male Respondents in the past 30 days') + guides(fill=guide_legend(title="Count"))+ theme_classic()+ theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 8),panel.spacing = unit(.25, "lines"))+geom_text(stat = 'count', aes(label = (..count..)), vjust = 0.5, hjust=-0.1, color=I('black'), size = 2)
+```
+
+The general trend for all gender by state moderately varies when split by gender. The plot closely presents the accumulated binge drinking times of Male respondents in a month. The top 3 binge drinking state for male respondents are Florida, Kansas, and Nebraska, same as all respondents.
+
+
+```{r}
+#Plot correlation between binge drinking, state and female respondents
+
+state_women <- ggplot(data=drnk3ge5_women, aes(y=state,fill=drnk3ge5)) + geom_bar(width = 0.8,position = position_dodge(0.9))+ ggtitle('                   Total Count of number of days of binge drinking for Female Respondents in the past 30 days') + guides(fill=guide_legend(title="Count"))+ theme_classic()+ theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 7), panel.spacing = unit(.25, "lines"))+geom_text(stat = 'count', aes(label = (..count..)), vjust = 0.5, hjust=-0.1, color=I('black'), size = 2)
+
+ggplot(data=drnk3ge5_women, aes(y=state,fill=drnk3ge5)) + geom_bar(width = 0.8,position = position_dodge(0.9))+ ggtitle('                   Total Count of number of days of binge drinking for Female Respondents in the past 30 days') + guides(fill=guide_legend(title="Count"))+ theme_classic()+ theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 7))+ geom_text(stat = 'count', aes(label = (..count..)), vjust = 0.5, hjust=-0.1, color=I('black'), size = 2)
+
+```
+  
+The plot closely shows the accumulated total binge drinking times of Female respondents in the past month. However, the analysis can show a slightly different result between male respondents. That is, the numbers of binge drinking times of Nebraska, Massachusetts, and Minnesota are very approximate. Moreover, some of the top ranking states such as Florida and Kansas show a incident that women binge drink more times than men. Despite prior analysis presents that the total count of men experience more binge drinking problem than women.
+
+
+
+
+
+
+**Research Question 2**
+
+Question 2 of the Brfss data set, is if the a correlation exists between binge drinking and physical and mental health status.
+The variable to judge how a respondent reports  his/her mental health in the past 30 days will be present as 'menthlth' column. The physical health will be measure by 'physhlth'column. And of course, 'drnk3ge5' will be use to access how many times during the past 30 days did the respondent have 5 or more drinks for men or 4 or more drinks for women on an occasion of the respondents.
+
+
+As a start, the data will be cleansed to avoid the inaccurate analysis due to incomplete data. 
+
+```{r}
+brfss2013_new <- brfss2013_new %>%
+  filter(!is.na(brfss2013_new$menthlth),!is.na(brfss2013_new$drnk3ge5), !is.na(brfss2013_new$physhlth))
+
+dim(brfss2013_new)
+
+```
+
+The data has been cleansed and ready to plot. To organized the plot, we will have to create new variables:
+
+isbingedrinking - states whether the respondent has binge drink in the last 30 days
+
+isMntlUnhlthy - states whether the respondent has a poor mental health day in the last 30 days
+
+isphysUnhlthy - states whether the respondent has a poor physical health day in the last 30 days
+
+
+The new variables will simplify the data. The plot will show a general trend of the research question.
+
+```{r}
+#declare variables for plotting
+isbingedrinking <- ifelse(brfss2013_new$drnk3ge5 > 0, 'Yes', 'No')
+isMntlUnhlthy <- ifelse(brfss2013_new$menthlth > 0, 'Yes', 'No')
+isphysUnhlthy <- ifelse(brfss2013_new$physhlth > 0, 'Yes', 'No')
+```
+
+
+
+```{r}
+#build dataframe that will consist of the newly created variables
+dfDrnkMntlHlthPhys <- data.frame(isbingedrinking = isbingedrinking,
+                isMntlUnhlthy = isMntlUnhlthy,
+                isphysUnhlthy = isphysUnhlthy)
+```
+
+
+
+```{r}
+# Plot result
+ggplot(data = dfDrnkMntlHlthPhys) +
+  geom_bar(aes(isMntlUnhlthy, fill =isbingedrinking), position = position_dodge(), width = .75) +  
+  facet_wrap(~isphysUnhlthy, ncol = 2) +
+  theme(panel.spacing = unit(.25, "lines")) + 
+  xlab("Experienced Mental Health in Last 30 Days") +
+  ylab("Number of Occurrences") + 
+  ggtitle('Binge Drinking Compared Against Mental and Physical Health') +
+  guides(fill=guide_legend(title="Binge Drinking?")) + 
+  scale_y_continuous(breaks = seq(0, 150000, 25000)) 
+
+```
+
+The plot specify that there is no correlation between binge drinking and both poor mental health / physical heath. All Respondents with no mental issue and no health issues requires the highest number of both non binge drinking and binge drinking occurrence. Moreover, we can observed that respondents that are in a poor physical health issue with non mental health issue have a lower number of binge drinking occurrence, to be more specific, they have the lowest number of binge drinking times and a second place on non-binge drinking. Last but not least, the respondents with poor mental health place a second and third occurrences. Particularly, people with mental health issue and normal physical health have a higher number of occurrences to over drink.
+
+To sum up, there is no perceive correlation between the three variables because the category of normal physical health + normal mental health respondents reflects the highest number of both binge drinking and non-binge drinking result.However, several interesting facts that can be observe. To illustrate, respondents with poor physical health and normal mental health tend to binge drinking fewer times. Furthermore, people with poor mental health problem tend to drink more.
+ 
+ 
+ 
+ **Research Question 3**
+ 
+Before getting start on answering whether education level, income level and employment status affect binge drinking action, the data must be cleansed to avoid inaccuracy.  
+
+
+```{r} 
+#Data Cleansing in brfss2013_new data set with new three filters 
+brfss2013_new <- brfss2013_new %>%
+  filter(!is.na(brfss2013_new$educa), 
+         !is.na(brfss2013_new$income2),
+         !is.na(brfss2013_new$employ1),
+         !is.na(brfss2013_new$drnk3ge5))
+```
+
+
+After the cleansing process, the analysis can be carried out. To observe the relation ship between three factors and binge drinking, bar chart will be utilize to plot the result.
+
+
+```{r}
+# Plot the relation between binge drinking frequency and education level 
+education_plot <- ggplot(aes(x=ifelse(brfss2013_new$drnk3ge5 == 0, 'No', 'Yes'), fill=educa), data = brfss2013_new[order(brfss2013_new$educa), ]) +
+  geom_bar(stat="count", width = .85, position = position_dodge()) + 
+  labs(title = 'Number of Binge Drinking times in the Past 30 Days', 
+       fill = "Education Level", 
+       x = "Reported Binge Drinking Times in Last 30 Days",
+       y = "Count of Reports") +
+  scale_y_continuous(breaks = seq(0, 300000, 30000)) +
+  theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 10))
+  
+
+ggplot(aes(x=ifelse(brfss2013_new$drnk3ge5 == 0, 'No', 'Yes'), fill=educa), data = brfss2013_new[order(brfss2013_new$educa), ]) +
+  geom_bar(stat="count", width = .85, position = position_dodge()) + 
+  labs(title = 'Number of Binge Drinking times in the Past 30 Days', 
+       fill = "Education Level", 
+       x = "Reported Binge Drinking Times in Last 30 Days",
+       y = "Count of Reports") +
+  scale_y_continuous(breaks = seq(0, 300000, 30000)) +
+  theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 10))
+
+```
+
+
+```{r}
+# Plot the relation between binge drinking frequency and Income level 
+education_plot <- ggplot(aes(x=ifelse(brfss2013_new$drnk3ge5 == 0, 'No', 'Yes'), fill=income2), data = brfss2013_new[order(brfss2013_new$income), ]) +
+  geom_bar(stat="count", width = .85, position = position_dodge()) + 
+  labs(title = 'Number of Binge Drinking times in the Past 30 Days', 
+       fill = "Income Level", 
+       x = "Reported Binge Drinking Times in Last 30 Days",
+       y = "Count of Reports") +
+  scale_y_continuous(breaks = seq(0, 300000, 30000)) +
+  theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 10))
+  
+
+ggplot(aes(x=ifelse(brfss2013_new$drnk3ge5 == 0, 'No', 'Yes'), fill=income2), data = brfss2013_new[order(brfss2013_new$income), ]) +
+  geom_bar(stat="count", width = .85, position = position_dodge()) + 
+  labs(title = '            Number of Binge Drinking times in the Past 30 Days', 
+       fill = "Income Level", 
+       x = "Reported Binge Drinking Times in Last 30 Days",
+       y = "Count of Reports") +
+  scale_y_continuous(breaks = seq(0, 300000, 30000)) +
+  theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 10))
+
+```
+
+
+```{r}
+# Plot the relation between binge drinking frequency and employment status 
+Income_plot <-ggplot(aes(x=ifelse(brfss2013_new$drnk3ge5 == 0, 'No', 'Yes'), fill=employ1), data = brfss2013_new[order(brfss2013_new$employ1), ]) +
+  geom_bar(stat="count", width = .85, position = position_dodge()) + 
+  labs(title = '      Number of Binge Drinking times in the Past 30 Days', 
+       fill = "employment Level", 
+       x = "Reported Binge Drinking Times in Last 30 Days",
+       y = "Count of Reports") +
+  scale_y_continuous(breaks = seq(0, 300000, 30000)) +
+  theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 10))
+
+ggplot(aes(x=ifelse(brfss2013_new$drnk3ge5 == 0, 'No', 'Yes'), fill=employ1), data = brfss2013_new[order(brfss2013_new$employ1), ]) +
+  geom_bar(stat="count", width = .85, position = position_dodge()) + 
+  labs(title = '      Number of Binge Drinking times in the Past 30 Days', 
+       fill = "employment status", 
+       x = "Reported Binge Drinking Times in Last 30 Days",
+       y = "Count of Reports") +
+  scale_y_continuous(breaks = seq(0, 300000, 30000)) +
+  theme(legend.justification = "top", legend.direction = "vertical", text = element_text(size = 10))
+
+```
+
+As a result, no determine correlation between binge drinking and the three variables. That is, both the respondents who have binge drinking issue and who don't have one seem to have the same trends.
+
+
+To clarify the situation, we can use the summary statistic to confirm the correlation.
+
+
+
+```{r}
+# summary statistic_education 
+by(brfss2013_new$drnk3ge5, brfss2013_new$educa, summary)
+```
+
+
+```{r}
+# summary statistic_income 
+by(brfss2013_new$drnk3ge5, brfss2013_new$income2, summary)
+```
+
+
+```{r}
+# summary statistic_employment 
+by(brfss2013_new$drnk3ge5, brfss2013_new$employ1, summary)
+```
+
+
+The statistic outcome of three variables Education,Income Level, and Employment Status present that most of the respondents do not binge drinking in the past month. Three distributions all appear to be a left skew distribution. Both Median and the 1st IQR are both zero can further verify that most of the people do not over drinking.
+
+
+
+
+
+
+
+
+
+
+
