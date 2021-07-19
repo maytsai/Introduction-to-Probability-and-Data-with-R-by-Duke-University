@@ -1,8 +1,8 @@
-## Probability-and-Data-with-R-by-Duke-University
+# Probability-and-Data-with-R-by-Duke-University
  
 Through the entire five week courses, we have learned the full ideas of probability and the data structures to build a R project from 0 to 1. 
 
-### Project Workflow
+## Project Workflow
 
 **On week 5 course, I established my very first R project by exploring the BRFSS data.**
 
@@ -32,7 +32,7 @@ With the large data set acquired by extent collective area, we can assume that t
 
 Since it is not a random assignment, only correlation can imply to the result but not causation.
 
-### Analysis Purpose:
+## Analysis Purpose:
 
 Controlling my diet for the past few years, I am especially interest in how Binge drinking correlated with demographic and the mental/physical health of respondents.
 
