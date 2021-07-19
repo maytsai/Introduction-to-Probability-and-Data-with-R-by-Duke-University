@@ -4,7 +4,7 @@ Through the entire five week courses, we have learned the full ideas of probabil
 
 ## Project Workflow
 
-**You can find my very first Data Analysis project using R- Exploring the BRFSS data in the week 5 folder.**
+**You can find my Data Analysis project using R- Exploring the BRFSS data in the week 5 folder.**
 
 **Title: Exploring the BRFSS data**
 Date: 06/28/2021
