@@ -45,4 +45,6 @@ Controlling my diet for the past few years, I am especially interest in how Bing
 **Research Question 3:** How does Education Level, Employment Status, and Income Level relate to Binge Drinking?
 
 
--> No Spoiler Alert here, you can observed the full process of how I manipualate the BRFSS 2013 dataset to find these research answers, Enjoy!
+Hey! No Spoiler Alert here! You can observed the full process of how I manipualate the BRFSS 2013 dataset to find these research answers, Enjoy!
+
+[ Certification.pdf](https://github.com/maytsai/Introduction-to-Probability-and-Data-with-R-by-Duke-University/files/6839025/Certification.pdf)
