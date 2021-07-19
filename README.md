@@ -1,6 +1,6 @@
 ## Probability-and-Data-with-R-by-Duke-University
  
-Through the entire five week courses, we have learned the full ideas of probability and data structures to build our own R project from 0 to 1. 
+Through the entire five week courses, we have learned the full ideas of probability and the data structures to build a R project from 0 to 1. 
 
 ### Project Workflow
 
