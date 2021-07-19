@@ -6,8 +6,8 @@ Through the entire five week courses, we have learned the full ideas of probabil
 
 You can find my Data Analysis project using R- Exploring the BRFSS data in the week 5 folder.
 
-**Title: Exploring the BRFSS data**
-**Date: 06/28/2021**
+**Title:** Exploring the BRFSS data
+**Date:** 06/28/2021
 
 **Data Source:**
 The Behavioral Risk Factor Surveillance System (BRFSS) is the nation’s premier system of health-related telephone surveys that collect state data about local U.S. residents.
